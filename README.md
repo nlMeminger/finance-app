@@ -1,34 +1,38 @@
-import os
+# Personal Finance Management Application
 
-def read_secret(secret_name):
-    """
-    Read a secret from the Docker secrets directory or fall back to an environment variable.
-    
-    :param secret_name: Name of the secret to read
-    :return: The secret value as a string, or None if not found
-    """
-    try:
-        with open(f'/run/secrets/{secret_name}', 'r') as secret_file:
-            return secret_file.read().strip()
-    except IOError:
-        # If the file doesn't exist, fall back to environment variable
-        return os.environ.get(secret_name.upper())
+## Overview
 
-def get_secret(secret_name, default=None):
-    """
-    Get a secret value, falling back to a default if not found.
-    
-    :param secret_name: Name of the secret to read
-    :param default: Default value to return if secret is not found
-    :return: The secret value, the environment variable value, or the default
-    """
-    value = read_secret(secret_name)
-    return value if value is not None else default
+This is a web-based personal finance management application built with Flask. It allows users to track their income and expenses, manage budgets, set savings goals, and get insights into their financial health.
 
-# Example usage of secrets
-DB_PASSWORD = get_secret('db_password')
-JWT_SECRET_KEY = get_secret('jwt_secret_key')
-PLAID_CLIENT_ID = get_secret('plaid_client_id')
-PLAID_SECRET = get_secret('plaid_secret')
+## Features
 
-# You can add more secrets as needed
+- User authentication and authorization
+- Account management (bank accounts, credit cards, etc.)
+- Transaction tracking and categorization
+- Budget creation and monitoring
+- Savings goals
+- Bill reminders
+- Investment tracking
+- Debt management
+- Financial reports and analytics
+- Integration with Plaid API for bank data synchronization
+
+## Tech Stack
+
+- Backend: Flask (Python)
+- Database: PostgreSQL
+- ORM: SQLAlchemy
+- Task Queue: Celery with Redis
+- API Documentation: Swagger/OpenAPI
+- Containerization: Docker
+- CI/CD: [Your CI/CD tool, e.g., GitHub Actions, GitLab CI, etc.]
+
+## Prerequisites
+
+- Docker and Docker Compose
+- Python 3.9+
+- Pipenv
+
+## Setup and Installation
+
+1. Clone the repository:
