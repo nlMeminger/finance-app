@@ -1,0 +1,42 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+Flask = "==2.1.0"
+Flask-SQLAlchemy = "==2.5.1"
+Flask-Migrate = "==3.1.0"
+Flask-RESTful = "==0.3.9"
+Flask-JWT-Extended = "==4.3.1"
+Flask-Bcrypt = "==0.7.1"
+Flask-Cors = "==3.0.10"
+psycopg2-binary = "==2.9.3"
+gunicorn = "==20.1.0"
+celery = "==5.2.3"
+redis = "==4.1.4"
+PyYAML = "==6.0"
+plaid-python = "==9.1.0"
+python-dotenv = "==0.19.2"
+requests = "==2.27.1"
+marshmallow = "==3.14.1"
+Flask-Marshmallow = "==0.14.0"
+marshmallow-sqlalchemy = "==0.27.0"
+pytest = "==7.1.1"
+coverage = "==6.3.2"
+
+[dev-packages]
+flake8 = "==4.0.1"
+black = "==22.3.0"
+isort = "==5.10.1"
+pytest = "==7.1.1"
+coverage = "==6.3.2"
+
+[requires]
+python_version = "3.9"
+
+[scripts]
+start = "flask run"
+test = "pytest"
+format = "black ."
+lint = "flake8 ."
