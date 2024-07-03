@@ -11,7 +11,7 @@ import os
 db = SQLAlchemy()
 jwt = JWTManager()
 cors = CORS()
-celery = Celery()
+celery = Celery(__name__)
 
 def read_secret(secret_name):
     try:
@@ -37,6 +37,18 @@ def create_app(config_name=None):
     app.config['SECRET_KEY'] = read_secret('secret_key') or os.getenv('SECRET_KEY') or app.config.get('SECRET_KEY')
     app.config['SQLALCHEMY_DATABASE_URI'] = read_secret('database_url') or os.getenv('DATABASE_URL') or app.config.get('SQLALCHEMY_DATABASE_URI')
     app.config['JWT_SECRET_KEY'] = read_secret('jwt_secret_key') or os.getenv('JWT_SECRET_KEY') or app.config.get('JWT_SECRET_KEY')
+    app.config['CELERY_BROKER_URL'] = 'redis://localhost:6379/0'
+    app.config['CELERY_RESULT_BACKEND'] = 'redis://localhost:6379/0'
+
+    celery.conf.update(app.config)
+
+    class ContextTask(celery.Task):
+        def __call__(self, *args, **kwargs):
+            with app.app_context():
+                return self.run(*args, **kwargs)
+
+    celery.Task = ContextTask
+
 
     # Initialize extensions
     db.init_app(app)
