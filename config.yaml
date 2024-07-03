@@ -2,7 +2,6 @@ default: &default
   SECRET_KEY: your_secret_key_here
   JWT_SECRET_KEY: your_jwt_secret_key_here
   SQLALCHEMY_TRACK_MODIFICATIONS: false
-  BCRYPT_LOG_ROUNDS: 13
   JWT_ACCESS_TOKEN_EXPIRES: 3600  # 1 hour
   CELERY_BROKER_URL: redis://redis:6379/0
   CELERY_RESULT_BACKEND: redis://redis:6379/0
@@ -28,7 +27,6 @@ testing:
   <<: *default
   TESTING: true
   SQLALCHEMY_DATABASE_URI: postgresql://user:password@db/test_db
-  BCRYPT_LOG_ROUNDS: 4
   PLAID_ENV: sandbox
 
 production:

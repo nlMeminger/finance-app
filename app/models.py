@@ -3,6 +3,8 @@ from datetime import datetime
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 
+from werkzeug.security import generate_password_hash, check_password_hash
+
 class User(db.Model):
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     username = db.Column(db.String(80), unique=True, nullable=False)
@@ -12,6 +14,12 @@ class User(db.Model):
     accounts = db.relationship('Account', backref='user', lazy=True)
     budgets = db.relationship('Budget', backref='user', lazy=True)
     savings_goals = db.relationship('SavingsGoal', backref='user', lazy=True)
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
 
 class Account(db.Model):
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

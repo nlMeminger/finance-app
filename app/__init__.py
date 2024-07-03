@@ -1,16 +1,15 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
-from flask_bcrypt import Bcrypt
 from flask_cors import CORS
 from celery import Celery
+from werkzeug.security import generate_password_hash, check_password_hash
 import yaml
 import os
 
 # Initialize extensions
 db = SQLAlchemy()
 jwt = JWTManager()
-bcrypt = Bcrypt()
 cors = CORS()
 celery = Celery()
 
@@ -42,7 +41,6 @@ def create_app(config_name=None):
     # Initialize extensions
     db.init_app(app)
     jwt.init_app(app)
-    bcrypt.init_app(app)
     cors.init_app(app)
 
     # Configure Celery
