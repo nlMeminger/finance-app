@@ -1,10 +1,9 @@
 default: &default
   SECRET_KEY: your_secret_key_here
   JWT_SECRET_KEY: your_jwt_secret_key_here
-  SQLALCHEMY_TRACK_MODIFICATIONS: false
   JWT_ACCESS_TOKEN_EXPIRES: 3600  # 1 hour
-  CELERY_BROKER_URL: redis://redis:6379/0
-  CELERY_RESULT_BACKEND: redis://redis:6379/0
+  CELERY_BROKER_URL: redis://localhost:6379/0
+  CELERY_RESULT_BACKEND: redis://localhost:6379/0
   MAIL_SERVER: smtp.gmail.com
   MAIL_PORT: 587
   MAIL_USE_TLS: true
@@ -15,22 +14,34 @@ default: &default
   PLAID_SECRET: your_plaid_secret
   PLAID_ENV: development
   UPLOAD_FOLDER: /app/uploads
-  MAX_CONTENT_LENGTH: 16 * 1024 * 1024  # 16 MB
+  MAX_CONTENT_LENGTH: 16777216  # 16 MB
+
+database: &database
+  DB_HOST: localhost
+  DB_PORT: "32796"
+  DB_USER: larrimore
+  DB_PASSWORD: larrimore
+  DB_NAME: finance
 
 development:
   <<: *default
+  <<: *database
   DEBUG: true
-  SQLALCHEMY_DATABASE_URI: postgresql://user:password@db/dev_db
+  SQLALCHEMY_DATABASE_URI: postgresql://%(DB_USER)s:%(DB_PASSWORD)s@%(DB_HOST)s:%(DB_PORT)s/%(DB_NAME)s
   PLAID_ENV: sandbox
 
 testing:
   <<: *default
+  <<: *database
   TESTING: true
-  SQLALCHEMY_DATABASE_URI: postgresql://user:password@db/test_db
+  DB_NAME: test_db
+  SQLALCHEMY_DATABASE_URI: postgresql://%(DB_USER)s:%(DB_PASSWORD)s@%(DB_HOST)s:%(DB_PORT)s/%(DB_NAME)s
   PLAID_ENV: sandbox
 
 production:
   <<: *default
+  <<: *database
   DEBUG: false
-  SQLALCHEMY_DATABASE_URI: postgresql://user:password@db/prod_db
+  DB_NAME: prod_db
+  SQLALCHEMY_DATABASE_URI: postgresql://%(DB_USER)s:%(DB_PASSWORD)s@%(DB_HOST)s:%(DB_PORT)s/%(DB_NAME)s
   PLAID_ENV: production

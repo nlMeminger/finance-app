@@ -1,17 +1,16 @@
+import os
+import yaml
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from celery import Celery
-from werkzeug.security import generate_password_hash, check_password_hash
-import yaml
-import os
 
 # Initialize extensions
 db = SQLAlchemy()
 jwt = JWTManager()
 cors = CORS()
-celery = Celery(__name__)
+celery = Celery()
 
 def read_secret(secret_name):
     try:
@@ -31,24 +30,16 @@ def create_app(config_name=None):
     with open('config.yaml', 'r') as config_file:
         config = yaml.safe_load(config_file)
 
+    # Update app config with the appropriate environment settings
     app.config.update(config.get(config_name, {}))
+
+    # Construct database URL
+    db_url = "postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}".format(**app.config)
+    app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 
     # Override with environment variables and secrets
     app.config['SECRET_KEY'] = read_secret('secret_key') or os.getenv('SECRET_KEY') or app.config.get('SECRET_KEY')
-    app.config['SQLALCHEMY_DATABASE_URI'] = read_secret('database_url') or os.getenv('DATABASE_URL') or app.config.get('SQLALCHEMY_DATABASE_URI')
     app.config['JWT_SECRET_KEY'] = read_secret('jwt_secret_key') or os.getenv('JWT_SECRET_KEY') or app.config.get('JWT_SECRET_KEY')
-    app.config['CELERY_BROKER_URL'] = 'redis://localhost:6379/0'
-    app.config['CELERY_RESULT_BACKEND'] = 'redis://localhost:6379/0'
-
-    celery.conf.update(app.config)
-
-    class ContextTask(celery.Task):
-        def __call__(self, *args, **kwargs):
-            with app.app_context():
-                return self.run(*args, **kwargs)
-
-    celery.Task = ContextTask
-
 
     # Initialize extensions
     db.init_app(app)
@@ -56,7 +47,10 @@ def create_app(config_name=None):
     cors.init_app(app)
 
     # Configure Celery
-    celery.conf.update(app.config['CELERY_CONFIG'])
+    celery.conf.update(
+        broker_url=app.config['CELERY_BROKER_URL'],
+        result_backend=app.config['CELERY_RESULT_BACKEND']
+    )
 
     # Import and register blueprints
     from .routes import main as main_blueprint
