@@ -1,13 +1,13 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token, JWTManager
 from .models import User, Account, Transaction, Budget, SavingsGoal, Bill, Investment, Debt
 from . import db
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 
-main = Blueprint('main', __name__)
-
+main = Blueprint('main', __name__) 
 @main.route('/health', methods=['GET'])
+@jwt_required()
 def health_check():
     return jsonify({"status": "healthy"}), 200
 
@@ -24,10 +24,7 @@ def register():
         db.session.rollback()
         return jsonify({"message": "Username or email already exists"}), 400
 
-@main.route('/login', methods=['POST'])
-def login():
-    # Implement login logic here
-    pass
+
 
 @main.route('/accounts', methods=['GET', 'POST'])
 @jwt_required()

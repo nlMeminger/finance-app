@@ -54,7 +54,9 @@ def create_app(config_name=None):
 
     # Import and register blueprints
     from .routes import main as main_blueprint
+    from .auth import auth
     app.register_blueprint(main_blueprint)
+    app.register_blueprint(auth)
 
     # Create database tables
     with app.app_context():
