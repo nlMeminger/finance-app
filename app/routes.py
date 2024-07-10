@@ -1,5 +1,5 @@
-from flask import Blueprint, request, jsonify, Flask, g, render_template, url_for
-from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token, JWTManager, current_user
+from flask import Blueprint, request, jsonify, Flask, g, render_template, url_for, session, flash, redirect
+from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token, JWTManager
 from .models import User, Account, Transaction, Budget, SavingsGoal, Bill, Investment, Debt
 from . import db
 from sqlalchemy.exc import IntegrityError
@@ -12,49 +12,85 @@ app = Flask(__name__)
 jwt = JWTManager(app)
 
 
-
-
-
-@jwt.user_identity_loader
-def user_identity_lookup(user):
-    return user.id
-
-
-@jwt.user_lookup_loader
-def user_lookup_callback(_jwt_header, jwt_data):
-    identity = jwt_data
-    return User.query.filter_by(id=identity).one_or_none()
-
-
-
 @main.route('/', methods=['GET'])
 @login_required
 def index():
     return render_template('index.html')
 
+@main.route('/accounts', methods=['GET', 'POST'])
+@login_required
+def accounts():
+    """Handle account creation and viewing."""
+    if request.method == 'POST':
+        # Handle account creation
+        name = request.form.get('name')
+        account_type = request.form.get('type')
+        balance = request.form.get('balance')
+        currency = request.form.get('currency')
+
+        if not all([name, account_type, balance, currency]):
+            flash('All fields are required', 'error')
+        else:
+            try:
+                balance = float(balance)
+                new_account = Account(
+                    user_id=g.user.id,  # Use g.user.id to get the user id
+                    name=name,
+                    type=account_type,
+                    balance=balance,
+                    currency=currency
+                )
+                db.session.add(new_account)
+                db.session.commit()
+                flash('Account created successfully', 'success')
+            except ValueError:
+                flash('Invalid balance amount', 'error')
+            except Exception as e:
+                db.session.rollback()
+                flash(f'An error occurred: {str(e)}', 'error')
+
+        return redirect(url_for('main.accounts'))
+
+    # GET request: Fetch and display accounts
+    accounts = Account.query.filter_by(user_id=g.user.id).all()
+    return render_template('money/accounts.html', accounts=accounts)
+
+@main.route('/account/<uuid:account_id>')
+@login_required
+def account_details(account_id):
+    account = Account.query.get_or_404(account_id)
+    transactions = Transaction.query.filter_by(account_id=account_id).order_by(Transaction.date.desc()).all()
+    return render_template('money/account_details.html', account=account, transactions=transactions)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 @main.route('/health', methods=['GET'])
-@jwt_required(locations=['cookies'])
 def health_check():
     return jsonify({"status": "healthy"}), 200
 
 
-@main.route('/accounts', methods=['GET', 'POST'])
-@jwt_required(locations=['cookies'])
-def accounts():
-    user_id = get_jwt_identity()
-    if request.method == 'GET':
-        accounts = Account.query.filter_by(user_id=user_id).all()
-        return jsonify([account.to_dict() for account in accounts]), 200
-    elif request.method == 'POST':
-        data = request.get_json()
-        new_account = Account(user_id=user_id, name=data['name'], type=data['type'], 
-                              balance=data['balance'], currency=data['currency'])
-        db.session.add(new_account)
-        db.session.commit()
-        return jsonify(new_account.to_dict()), 201
+
+
+
+
+
+
+
+
 
 @main.route('/transactions', methods=['GET', 'POST'])
-@jwt_required(locations=['cookies'])
+@login_required
 def transactions():
     user_id = get_jwt_identity()
     if request.method == 'GET':
@@ -74,7 +110,7 @@ def transactions():
         return jsonify(new_transaction.to_dict()), 201
 
 @main.route('/budgets', methods=['GET', 'POST'])
-@jwt_required(locations=['cookies'])
+@login_required
 def budgets():
     user_id = get_jwt_identity()
     if request.method == 'GET':
@@ -91,7 +127,7 @@ def budgets():
         return jsonify(new_budget.to_dict()), 201
 
 @main.route('/savings-goals', methods=['GET', 'POST'])
-@jwt_required(locations=['cookies'])
+@login_required
 def savings_goals():
     user_id = get_jwt_identity()
     if request.method == 'GET':
@@ -108,7 +144,7 @@ def savings_goals():
         return jsonify(new_goal.to_dict()), 201
 
 @main.route('/bills', methods=['GET', 'POST'])
-@jwt_required(locations=['cookies'])
+@login_required
 def bills():
     user_id = get_jwt_identity()
     if request.method == 'GET':
@@ -125,7 +161,7 @@ def bills():
         return jsonify(new_bill.to_dict()), 201
 
 @main.route('/investments', methods=['GET', 'POST'])
-@jwt_required(locations=['cookies'])
+@login_required
 def investments():
     user_id = get_jwt_identity()
     if request.method == 'GET':
@@ -141,7 +177,7 @@ def investments():
         return jsonify(new_investment.to_dict()), 201
 
 @main.route('/debts', methods=['GET', 'POST'])
-@jwt_required(locations=['cookies'])
+@login_required
 def debts():
     user_id = get_jwt_identity()
     if request.method == 'GET':
@@ -158,7 +194,7 @@ def debts():
         return jsonify(new_debt.to_dict()), 201
 
 @main.route('/dashboard', methods=['GET'])
-@jwt_required(locations=['cookies'])
+@login_required
 def dashboard():
     user_id = get_jwt_identity()
     # Implement dashboard data aggregation here
@@ -166,3 +202,6 @@ def dashboard():
     return jsonify({"message": "Dashboard data"}), 200
 
 # Add more routes as needed for other features
+
+
+
