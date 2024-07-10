@@ -1,33 +1,53 @@
-from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token, JWTManager
+from flask import Blueprint, request, jsonify, Flask, g
+from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token, JWTManager, current_user
 from .models import User, Account, Transaction, Budget, SavingsGoal, Bill, Investment, Debt
 from . import db
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
+from functools import wraps
 
 main = Blueprint('main', __name__) 
+app = Flask(__name__)
+jwt = JWTManager(app)
+
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if g.user is None:
+            return redirect(url_for('login', next=request.url))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+@jwt.user_identity_loader
+def user_identity_lookup(user):
+    return user.id
+
+
+@jwt.user_lookup_loader
+def user_lookup_callback(_jwt_header, jwt_data):
+    identity = jwt_data
+    return User.query.filter_by(id=identity).one_or_none()
+
+
+
+@main.route('/', methods=['GET'])
+@jwt_required(locations=['cookies'])
+@login_required
+def index():
+    user_id = get_jwt_identity()
+    print(user_id)
+    return render_template('index.html')
+
 @main.route('/health', methods=['GET'])
-@jwt_required()
+@jwt_required(locations=['cookies'])
 def health_check():
     return jsonify({"status": "healthy"}), 200
 
-@main.route('/register', methods=['POST'])
-def register():
-    data = request.get_json()
-    user = User(username=data['username'], email=data['email'])
-    user.set_password(data['password'])
-    db.session.add(user)
-    try:
-        db.session.commit()
-        return jsonify({"message": "User created successfully"}), 201
-    except IntegrityError:
-        db.session.rollback()
-        return jsonify({"message": "Username or email already exists"}), 400
-
-
 
 @main.route('/accounts', methods=['GET', 'POST'])
-@jwt_required()
+@jwt_required(locations=['cookies'])
 def accounts():
     user_id = get_jwt_identity()
     if request.method == 'GET':
@@ -42,7 +62,7 @@ def accounts():
         return jsonify(new_account.to_dict()), 201
 
 @main.route('/transactions', methods=['GET', 'POST'])
-@jwt_required()
+@jwt_required(locations=['cookies'])
 def transactions():
     user_id = get_jwt_identity()
     if request.method == 'GET':
@@ -62,7 +82,7 @@ def transactions():
         return jsonify(new_transaction.to_dict()), 201
 
 @main.route('/budgets', methods=['GET', 'POST'])
-@jwt_required()
+@jwt_required(locations=['cookies'])
 def budgets():
     user_id = get_jwt_identity()
     if request.method == 'GET':
@@ -79,7 +99,7 @@ def budgets():
         return jsonify(new_budget.to_dict()), 201
 
 @main.route('/savings-goals', methods=['GET', 'POST'])
-@jwt_required()
+@jwt_required(locations=['cookies'])
 def savings_goals():
     user_id = get_jwt_identity()
     if request.method == 'GET':
@@ -96,7 +116,7 @@ def savings_goals():
         return jsonify(new_goal.to_dict()), 201
 
 @main.route('/bills', methods=['GET', 'POST'])
-@jwt_required()
+@jwt_required(locations=['cookies'])
 def bills():
     user_id = get_jwt_identity()
     if request.method == 'GET':
@@ -113,7 +133,7 @@ def bills():
         return jsonify(new_bill.to_dict()), 201
 
 @main.route('/investments', methods=['GET', 'POST'])
-@jwt_required()
+@jwt_required(locations=['cookies'])
 def investments():
     user_id = get_jwt_identity()
     if request.method == 'GET':
@@ -129,7 +149,7 @@ def investments():
         return jsonify(new_investment.to_dict()), 201
 
 @main.route('/debts', methods=['GET', 'POST'])
-@jwt_required()
+@jwt_required(locations=['cookies'])
 def debts():
     user_id = get_jwt_identity()
     if request.method == 'GET':
@@ -146,7 +166,7 @@ def debts():
         return jsonify(new_debt.to_dict()), 201
 
 @main.route('/dashboard', methods=['GET'])
-@jwt_required()
+@jwt_required(locations=['cookies'])
 def dashboard():
     user_id = get_jwt_identity()
     # Implement dashboard data aggregation here

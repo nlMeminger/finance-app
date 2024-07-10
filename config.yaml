@@ -17,7 +17,7 @@ default: &default
   MAX_CONTENT_LENGTH: 16777216  # 16 MB
 
 database: &database
-  DB_HOST: "100.91.106.3"
+  DB_HOST: "100.64.88.44"
   DB_PORT: "5432"
   DB_USER: larrimore
   DB_PASSWORD: larrimore

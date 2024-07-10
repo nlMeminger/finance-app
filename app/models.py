@@ -9,7 +9,7 @@ class User(db.Model):
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128))
+    password_hash = db.Column(db.String(256))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     accounts = db.relationship('Account', backref='user', lazy=True)
     budgets = db.relationship('Budget', backref='user', lazy=True)
@@ -30,6 +30,17 @@ class Account(db.Model):
     currency = db.Column(db.String(3), nullable=False)
     last_updated = db.Column(db.DateTime, default=datetime.utcnow)
     transactions = db.relationship('Transaction', backref='account', lazy=True)
+
+    def to_dict(self):
+        return {
+            'id': str(self.id),
+            'user_id': str(self.user_id),
+            'name': self.name,
+            'type': self.type,
+            'balance': self.balance,
+            'currency': self.currency,
+            'last_updated': self.last_updated.isoformat() if self.last_updated else None
+        }
 
 class Transaction(db.Model):
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

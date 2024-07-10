@@ -1,0 +1,161 @@
+{% include 'base.html' %}
+
+{% block content %}
+
+<body>
+  <main class="main" id="main">
+    <div class="pagetitle">
+      <h1>Dashboard</h1>
+      <nav>
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="{{ url_for('money.index') }}">Home</a></li>
+          <li class="breadcrumb-item active">Dashboard</li>
+        </ol>
+      </nav>
+    </div><!-- End Page Title -->
+    <section>
+
+      <!-- Row 1 -->
+      <div class="row">
+        <div class="col">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Net worth</h5>
+              <p id="networth-card" class="dashboard info-card">
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="card">
+            <div class="card-body">
+              <span>
+                <h5 class="card-title">Inflow <span>| This Month</span></h5>
+                <p id="inflow-card" class="dashboard info-card">
+                  {{ inflow }}
+                </p>
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Outflow <span>| This Month</span></h5>
+              <p id="outflow-card" class="dashboard info-card"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 2 -->
+      <div class="row">
+        <div class="col-8">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Spending by category</h5>
+              <div id="pieChart"></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Stocks</h5>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Row 3 -->
+      <div class="row">
+        <div class="col">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">in vs out graph</h5>
+            </div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">credit score over time</h5>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+
+
+
+
+      <!-- Row 4 -->
+      <div class="row">
+        <div class="col">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">recent transactions</h5>
+              <!-- Table with stripped rows -->
+              <table class="table" id="recent-transactions-card">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>amount</th>
+                    <th>Category</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  
+                </tbody>
+              </table>
+            </div></div>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- ======= Footer ======= -->
+  <footer id="footer" class="footer">
+    <div class="copyright">
+      &copy; Copyright <strong><span>NiceAdmin</span></strong>. All Rights Reserved
+    </div>
+    <div class="credits">
+      <!-- All the links in the footer should remain intact. -->
+      <!-- You can delete the links only if you purchased the pro version. -->
+      <!-- Licensing information: https://bootstrapmade.com/license/ -->
+      <!-- Purchase the pro version with working PHP/AJAX contact form: https://bootstrapmade.com/nice-admin-bootstrap-admin-html-template/ -->
+      Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a>
+    </div>
+  </footer><!-- End Footer -->
+
+  <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i
+      class="bi bi-arrow-up-short"></i></a>
+
+  <!-- Vendor JS Files -->
+  <script>
+    const userData = "{{ g.user['id'] }}";
+  </script>
+
+  <script src="{{ url_for('static', filename='assets/js/dashboard.js') }}"></script>
+  <script src="{{ url_for('static', filename='assets/vendor/apexcharts/apexcharts.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='assets/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='assets/vendor/chart.js/chart.umd.js') }}"></script>
+  <script src="{{ url_for('static', filename='assets/vendor/echarts/echarts.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='assets/vendor/quill/quill.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='assets/vendor/simple-datatables/simple-datatables.js') }}"></script>
+  <script src="{{ url_for('static', filename='assets/vendor/tinymce/tinymce.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='assets/vendor/php-email-form/validate.js') }}"></script>
+  <!-- Template Main JS File -->
+  <script src="{{ url_for( 'static', filename='assets/js/main.js') }}"></script>
+
+
+
+  {% endblock %}
+</body>
+
+</html>

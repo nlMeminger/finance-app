@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Posts{% endblock %}</h1>
+  {% if g.user %}
+  {% endif %}
+{% endblock %}
+
+
+{% block content %}
+
+<form method="post">
+  <label for="nickname">Account Nickname</label>
+  <input name="nickname" id="nickname" required>
+
+  <label for="number">Account Number</label>
+  <input name="number" id="number" >
+
+  <label for="routing">Account Routing Number</label>
+  <input name="routing" id="routing" >
+
+  <label for="bank">Bank</label>
+  <input name="bank" id="bank" >
+
+  <label for="balance">Current Balance</label>
+  <input name="balance" id="balance" value="0">
+
+  <label for="type">Type</label>
+  <select name="type" id="type" required>
+    {% for i in types %}
+      <option value="{{i}}">{{ i }}</option>
+    {% endfor %}
+
+  
+
+  <input type="submit" value="Create">
+</form>
+
+
+
+{% endblock %}

@@ -1,0 +1,256 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+
+<script type="text/javascript">
+  (async function ($) {
+    var handler = Plaid.create({
+      // Create a new link_token to initialize Link
+      token: (await $.post('/create_link_token/liabilities')).link_token,
+
+
+      onSuccess: function (public_token, metadata) {
+        $.post('/exchange_public_token', { token: public_token })
+      },
+      onExit: function (err, metadata) {
+
+        // The user exited the Link flow.
+        if (err != null) {
+          // The user encountered a Plaid API error prior to exiting.
+        }
+        // metadata contains information about the institution
+        // that the user selected and the most recent API request IDs.
+        // Storing this information can be helpful for support.
+      },
+      onEvent: function (eventName, metadata) {
+        // Optionally capture Link flow events, streamed through
+        // this callback as your users connect an Item to Plaid.
+        // For example:
+        // eventName = "TRANSITION_VIEW"
+        // metadata  = {
+        //   link_session_id: "123-abc",
+        //   mfa_type:        "questions",
+        //   timestamp:       "2017-09-14T14:42:19.350Z",
+        //   view_name:       "MFA",
+        // }
+      }
+    });
+
+    $('#link-button').on('click', function (e) {
+      handler.open();
+    });
+  })(jQuery);
+</script>
+
+<main id="main" class="main">
+
+  <div class="pagetitle">
+    <h1>Liability Accounts</h1>
+    <h4></h4>
+    <nav>
+    </nav>
+  </div><!-- End Page Title -->
+
+  <section class="section">
+
+    <div class="row">
+      <!-- Total liabilities card-->
+      <div class="col-xxl-4 col-md-6">
+        <div class="card info-card sales-card">
+          <div class="filter">
+            <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+              <li class="dropdown-header text-start">
+                <h6>Filter</h6>
+              </li>
+              <li><a class="dropdown-item" href="#">Today</a></li>
+              <li><a class="dropdown-item" href="#">This Month</a></li>
+              <li><a class="dropdown-item" href="#">This Year</a></li>
+            </ul>
+          </div>
+
+          <div class="card-body">
+            <h5 class="card-title">Total Liabilities<span>| Today</span></h5>
+
+            <div class="d-flex align-items-center">
+
+              <div class="ps-3">
+                <h6>${{ total }}</h6>
+                <span class="text-success small pt-1 fw-bold">12%</span> <span
+                  class="text-muted small pt-2 ps-1">increase</span>
+
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <!-- End Total liabilities card-->
+      </div>
+      <!-- Revenue Card -->
+      <div class="col-xxl-4 col-md-6">
+        <div class="card info-card revenue-card">
+
+          <div class="filter">
+            <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+              <li class="dropdown-header text-start">
+                <h6>Filter</h6>
+              </li>
+
+              <li><a class="dropdown-item" href="#">Today</a></li>
+              <li><a class="dropdown-item" href="#">This Month</a></li>
+              <li><a class="dropdown-item" href="#">This Year</a></li>
+            </ul>
+          </div>
+
+          <div class="card-body">
+            <h5 class="card-title">Credit Utilization <span>| Today</span></h5>
+
+            <div class="d-flex align-items-center">
+
+              <div class="ps-3">
+                <h6 id="credit-utilization-text">10%</h6>
+                <span class="text-success small pt-1 fw-bold">8%</span> <span
+                  class="text-muted small pt-2 ps-1">increase</span>
+
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div><!-- End Revenue Card -->
+      <!-- credit Card -->
+      <div class="col-xxl-4 col-md-6">
+        <div class="card info-card revenue-card">
+
+          <div class="filter">
+            <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+              <li class="dropdown-header text-start">
+                <h6>Filter</h6>
+              </li>
+
+              <li><a class="dropdown-item" href="#">Today</a></li>
+              <li><a class="dropdown-item" href="#">This Month</a></li>
+              <li><a class="dropdown-item" href="#">This Year</a></li>
+            </ul>
+          </div>
+
+          <div class="card-body">
+            <h5 class="card-title">Available Credit <span>| Today</span></h5>
+
+            <div class="d-flex align-items-center">
+
+              <div class="ps-3">
+                <h6>$4,000</h6>
+                <span class="text-success small pt-1 fw-bold">8%</span> <span
+                  class="text-muted small pt-2 ps-1">increase</span>
+
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div><!-- End credit Card -->
+    </div>
+    <!-- End Total liabilities card-->
+
+
+    <!-- Transactions Table-->
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Accounts</h5>
+            <p class="card-text">
+              <button id="link-button" class="btn btn-outline-primary">Link Account</button>
+            </p>
+            <!-- Table with stripped rows -->
+            <table class="table" id="account-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Number</th>
+                  <th>Bank</th>
+                  <th>Type</th>
+                  <th>Current Balance</th>
+                  <th>Available Balance</th>
+                  <th>Credit Limit</th>
+                  <th>Interest Rate</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for a in accounts %}
+                <tr>
+                  <td><a href="{{ url_for('money.account', id=a.id) }}">{{ a.name }}</a></td>
+                  <td>{{ a.number }}</td>
+                  <td>{{ a.bank }}</td>
+                  <td>{{ a.type }}</td>
+                  {% if a.current_balance != "" %}
+                  <td>${{ a.current_balance }}</td>
+                  {% else %}
+                  <td></td>
+                  {% endif %}
+                  {% if a.available_balance != "" and a.available_balance != None %}
+                  <td>${{ a.available_balance }}</td>
+                  {% else %}
+                  <td></td>
+                  {% endif %}
+                  {% if a.limit != "" %}
+                  <td>${{ a.limit }}</td>
+                  {% else %}
+                  <td></td>
+                  {% endif %}
+                  <td>{{ a.interest_rate }}%</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            <!-- End Table with stripped rows -->
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- End Transactions Table-->
+  </section>
+
+</main><!-- End #main -->
+
+<!-- ======= Footer ======= -->
+<footer id="footer" class="footer">
+  <div class="copyright">
+  </div>
+  <div class="credits">
+  </div>
+</footer><!-- End Footer -->
+
+<a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i
+    class="bi bi-arrow-up-short"></i></a>
+
+<script>
+  const userData = "{{ g.user['id'] }}";
+</script>
+<script src="{{ url_for( 'static', filename='assets/js/edit-name.js') }}"></script>
+<script src="{{ url_for( 'static', filename='assets/js/liabilities.js') }}"></script>
+
+<!-- Vendor JS Files -->
+<script src="{{ url_for('static', filename='assets/vendor/apexcharts/apexcharts.min.js') }}"></script>
+<script src="{{ url_for('static', filename='assets/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ url_for('static', filename='assets/vendor/chart.js/chart.umd.js') }}"></script>
+<script src="{{ url_for('static', filename='assets/vendor/echarts/echarts.min.js') }}"></script>
+<script src="{{ url_for('static', filename='assets/vendor/quill/quill.min.js') }}"></script>
+<script src="{{ url_for('static', filename='assets/vendor/simple-datatables/simple-datatables.js') }}"></script>
+<script src="{{ url_for('static', filename='assets/vendor/tinymce/tinymce.min.js') }}"></script>
+<script src="{{ url_for('static', filename='assets/vendor/php-email-form/validate.js') }}"></script>
+
+
+<!-- Template Main JS File -->
+<script src="{{ url_for( 'static', filename='assets/js/main.js') }}"></script>
+{% endblock %}
+</body>
+
+
+
+</html>

@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<main id="main" class="main">
+
+  <section class="section">
+
+    <div class="row">
+      <!-- Total Portfolio value card-->
+      <div class="col-xxl-4 col-md-6">
+        <div class="card info-card sales-card">
+          <div class="filter">
+            <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+              <li class="dropdown-header text-start">
+                <h6>Filter</h6>
+              </li>
+              <li><a class="dropdown-item" href="#">Today</a></li>
+              <li><a class="dropdown-item" href="#">This Month</a></li>
+              <li><a class="dropdown-item" href="#">This Year</a></li>
+            </ul>
+          </div>
+
+          <div class="card-body">
+            <h5 class="card-title">Total Value<span>| Today</span></h5>
+
+            <div class="d-flex align-items-center">
+
+              <div class="ps-3">
+                <h6>${{ total }}</h6>
+                <span class="text-success small pt-1 fw-bold">12%</span> <span
+                  class="text-muted small pt-2 ps-1">increase</span>
+
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <!-- End Total Portfolio value card-->
+      </div>
+
+
+      <!-- Gain -->
+      <div class="col-xxl-4 col-md-6">
+        <div class="card info-card revenue-card">
+
+          <div class="filter">
+            <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+              <li class="dropdown-header text-start">
+                <h6>Filter</h6>
+              </li>
+
+              <li><a class="dropdown-item" href="#">Today</a></li>
+              <li><a class="dropdown-item" href="#">This Month</a></li>
+              <li><a class="dropdown-item" href="#">This Year</a></li>
+            </ul>
+          </div>
+
+          <div class="card-body">
+            <h5 class="card-title">Gains <span>| Today</span></h5>
+
+            <div class="d-flex align-items-center">
+
+              <div class="ps-3">
+                <h6 id="credit-utilization-text">10%</h6>
+                <span class="text-success small pt-1 fw-bold">8%</span> <span
+                  class="text-muted small pt-2 ps-1">increase</span>
+
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div><!-- End gains Card -->
+
+
+      <!-- % gain Card -->
+      <div class="col-xxl-4 col-md-6">
+        <div class="card info-card revenue-card">
+
+          <div class="filter">
+            <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+              <li class="dropdown-header text-start">
+                <h6>Filter</h6>
+              </li>
+
+              <li><a class="dropdown-item" href="#">Today</a></li>
+              <li><a class="dropdown-item" href="#">This Month</a></li>
+              <li><a class="dropdown-item" href="#">This Year</a></li>
+            </ul>
+          </div>
+
+          <div class="card-body">
+            <h5 class="card-title">% Gain<span>| Today</span></h5>
+
+            <div class="d-flex align-items-center">
+
+              <div class="ps-3">
+                <h6>$4,000</h6>
+                <span class="text-success small pt-1 fw-bold">8%</span> <span
+                  class="text-muted small pt-2 ps-1">increase</span>
+
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div><!-- End % gain Card -->
+    </div>
+    <!-- End Cards row card-->
+
+    <!-- Start Assets Table-->
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Stocks</h5>
+            <!-- Table with stripped rows -->
+            <table class="table" id="account-table">
+              <thead>
+                <tr>
+                  <th>Symbol</th>
+                  <th>Quantity</th>
+                  <th>Market Price</th>
+                  <th>Cost Basis</th>
+                  <th>Purchase Price</th>
+                  <th>Value</th>
+                  <th>% of Portfolio</th>
+                  <th>Day's Gain</th>
+                  <th>Total Gain</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for i in investments %}
+                <tr>
+                  <td>{{ i.symbol }}</td>
+                  <td>{{ i.quantity }}</td>
+                  <td>TBD</td>
+                  <td>TBD</td>
+                  <td>{{ i.purchase_price }}</td>
+                  <td>TBD</td>
+                  <td>TBD</td>
+                  <td>TBD</td>
+                  <td>TBD</td>
+                  {% endfor %}
+              </tbody>
+            </table>
+            <!-- End Table with stripped rows -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main><!-- End #main -->
+
+<!-- ======= Footer ======= -->
+<footer id="footer" class="footer">
+  <div class="copyright">
+    &copy; Copyright <strong><span>NiceAdmin</span></strong>. All Rights Reserved
+  </div>
+  <div class="credits">
+    <!-- All the links in the footer should remain intact. -->
+    <!-- You can delete the links only if you purchased the pro version. -->
+    <!-- Licensing information: https://bootstrapmade.com/license/ -->
+    <!-- Purchase the pro version with working PHP/AJAX contact form: https://bootstrapmade.com/nice-admin-bootstrap-admin-html-template/ -->
+    Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a>
+  </div>
+</footer><!-- End Footer -->
+
+<a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i
+    class="bi bi-arrow-up-short"></i></a>
+
+<!-- Vendor JS Files -->
+<script src="{{ url_for('static', filename='assets/vendor/apexcharts/apexcharts.min.js') }}"></script>
+<script src="{{ url_for('static', filename='assets/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ url_for('static', filename='assets/vendor/chart.js/chart.umd.js') }}"></script>
+<script src="{{ url_for('static', filename='assets/vendor/echarts/echarts.min.js') }}"></script>
+<script src="{{ url_for('static', filename='assets/vendor/quill/quill.min.js') }}"></script>
+<script src="{{ url_for('static', filename='assets/vendor/simple-datatables/simple-datatables.js') }}"></script>
+<script src="{{ url_for('static', filename='assets/vendor/tinymce/tinymce.min.js') }}"></script>
+<script src="{{ url_for('static', filename='assets/vendor/php-email-form/validate.js') }}"></script>
+
+<!-- Template Main JS File -->
+<script src="{{ url_for( 'static', filename='assets/js/main.js') }}"></script>
+{% endblock %}
+</body>
+
+</html>

@@ -1,8 +1,10 @@
 from app import create_app, db, celery
 from app.models import User, Account, Transaction, Budget, SavingsGoal, Bill, Investment, Debt
 from flask.cli import FlaskGroup
+from flask_migrate import Migrate
 
 app = create_app()
+migrate = Migrate(app, db)
 cli = FlaskGroup(app)
 
 @app.shell_context_processor
@@ -10,7 +12,7 @@ def make_shell_context():
     return {
         'db': db,
         'User': User,
-        'Account': Account,
+        'Account': Account,flas
         'Transaction': Transaction,
         'Budget': Budget,
         'SavingsGoal': SavingsGoal,

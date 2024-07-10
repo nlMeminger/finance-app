@@ -5,9 +5,11 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from celery import Celery
+from flask_migrate import Migrate
 
 # Initialize extensions
 db = SQLAlchemy()
+migrate = Migrate()
 jwt = JWTManager()
 cors = CORS()
 celery = Celery()
@@ -37,12 +39,17 @@ def create_app(config_name=None):
     db_url = "postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}".format(**app.config)
     app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 
+    app.config["JWT_SECRET_KEY"] = "super-secret"  # Change this!
+    app.config['JWT_TOKEN_LOCATION'] = ['cookies']
+    app.config['JWT_COOKIE_CSRF_PROTECT'] = True
+
     # Override with environment variables and secrets
     app.config['SECRET_KEY'] = read_secret('secret_key') or os.getenv('SECRET_KEY') or app.config.get('SECRET_KEY')
     app.config['JWT_SECRET_KEY'] = read_secret('jwt_secret_key') or os.getenv('JWT_SECRET_KEY') or app.config.get('JWT_SECRET_KEY')
 
     # Initialize extensions
     db.init_app(app)
+    migrate.init_app(app, db)
     jwt.init_app(app)
     cors.init_app(app)
 
