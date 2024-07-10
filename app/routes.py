@@ -1,23 +1,18 @@
-from flask import Blueprint, request, jsonify, Flask, g
+from flask import Blueprint, request, jsonify, Flask, g, render_template, url_for
 from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token, JWTManager, current_user
 from .models import User, Account, Transaction, Budget, SavingsGoal, Bill, Investment, Debt
 from . import db
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 from functools import wraps
+from .utils import login_required
 
 main = Blueprint('main', __name__) 
 app = Flask(__name__)
 jwt = JWTManager(app)
 
 
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if g.user is None:
-            return redirect(url_for('login', next=request.url))
-        return f(*args, **kwargs)
-    return decorated_function
+
 
 
 @jwt.user_identity_loader
@@ -33,11 +28,8 @@ def user_lookup_callback(_jwt_header, jwt_data):
 
 
 @main.route('/', methods=['GET'])
-@jwt_required(locations=['cookies'])
 @login_required
 def index():
-    user_id = get_jwt_identity()
-    print(user_id)
     return render_template('index.html')
 
 @main.route('/health', methods=['GET'])

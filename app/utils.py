@@ -1,4 +1,4 @@
-from flask import jsonify
+from flask import jsonify, g, session, redirect, url_for
 from werkzeug.exceptions import HTTPException
 import jwt
 from functools import wraps
@@ -135,3 +135,17 @@ def format_currency(amount, currency='USD'):
         return f'€{amount:,.2f}'
     else:
         return f'{amount:,.2f} {currency}'
+
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        print(session.keys())
+        if 'user_id' not in session:
+            return redirect(url_for('auth.login'))
+        user = User.query.get(session['user_id'])
+        if user is None:
+            return redirect(url_for('auth.login'))
+        g.user = user  # Store user in Flask's g object for the duration of the request
+        return f(*args, **kwargs)
+    return decorated_function
