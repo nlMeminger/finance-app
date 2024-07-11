@@ -77,6 +77,17 @@ class Bill(db.Model):
     due_date = db.Column(db.DateTime, nullable=False)
     recurring = db.Column(db.Boolean, default=False)
     frequency = db.Column(db.String(20))  # 'monthly', 'yearly', etc.
+    payment_status = db.Column(db.String(20), default='unpaid')  # 'paid' or 'unpaid'
+    category = db.Column(db.String(50))
+    linked_transactions = db.relationship('Transaction', backref='bill', lazy=True)
+    pdf_files = db.relationship('BillPDF', backref='bill', lazy=True)
+
+
+class BillPDF(db.Model):
+    id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    bill_id = db.Column(UUID(as_uuid=True), db.ForeignKey('bill.id'), nullable=False)
+    file_path = db.Column(db.String(255), nullable=False)
+    upload_date = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Investment(db.Model):
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
