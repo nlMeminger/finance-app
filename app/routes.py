@@ -6,7 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 from functools import wraps
 from .utils import login_required
-
+import uuid
 main = Blueprint('main', __name__) 
 app = Flask(__name__)
 jwt = JWTManager(app)
@@ -16,6 +16,22 @@ jwt = JWTManager(app)
 @login_required
 def index():
     return render_template('index.html')
+
+@main.route('/gettingStarted', methods=[ 'POST'])
+@login_required
+def gettingStarted():
+    print(request.json)
+    response = {
+        'success': True,
+        'message': '"Budget successfully created"',
+    }   
+    return jsonify(response)
+
+
+@main.route('/dashboard', methods=['GET'])
+@login_required
+def dashboard():
+    return redirect(url_for('main.index'))
 
 @main.route('/accounts', methods=['GET', 'POST'])
 @login_required
@@ -81,25 +97,33 @@ def health_check():
 
 
 
-
-
-
-
-
-
-UPLOAD_FOLDER = './uploads'
-ALLOWED_EXTENSIONS = {'pdf'}
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
 @main.route('/bills', methods=['GET'])
 @login_required
 def bills():
     user_id = session['user_id']
-    bills = Bill.query.filter_by(user_id=user_id).all()
+    current_date = datetime.utcnow().date()
+    
+    # Get all bills and update their status
+    all_bills = Bill.query.filter_by(user_id=user_id).all()
+    for bill in all_bills:
+        bill.reset_payment_status()
+    db.session.commit()
+
+    # Get upcoming and unpaid bills
+    upcoming_bills = Bill.query.filter(
+        Bill.user_id == user_id,
+        Bill.payment_status == 'unpaid'
+    ).order_by(Bill.due_date).all()
+    
+    # Get paid bills
+    paid_bills = Bill.query.filter(
+        Bill.user_id == user_id,
+        Bill.payment_status == 'paid'
+    ).order_by(Bill.last_paid_date.desc()).all()
+
     accounts = Account.query.filter_by(user_id=user_id).all()
-    return render_template('bills.html', bills=bills, accounts=accounts)
+    return render_template('money/bills.html', upcoming_bills=upcoming_bills, paid_bills=paid_bills, accounts=accounts)
+
 
 @main.route('/bills/add', methods=['POST'])
 @login_required
@@ -107,72 +131,100 @@ def add_bill():
     user_id = session['user_id']
     data = request.json
     
-    new_bill = Bill(
-        user_id=user_id,
-        name=data['name'],
-        amount=float(data['amount']),
-        due_date=datetime.strptime(data['due_date'], '%Y-%m-%d'),
-        recurring=data.get('recurring', False),
-        frequency=data.get('frequency'),
-        category=data.get('category'),
-        account_id=data.get('account_id'),
-        is_credit_card=data.get('is_credit_card', False)
-    )
-    db.session.add(new_bill)
-    db.session.commit()
-
-    return jsonify({"message": "Bill added successfully", "id": str(new_bill.id)}), 201
-
-@main.route('/bills/<int:bill_id>/upload_pdf', methods=['POST'])
-@login_required
-def upload_bill_pdf(bill_id):
-    if 'pdf_file' not in request.files:
-        return jsonify({"message": "No file part"}), 400
-    file = request.files['pdf_file']
-    if file.filename == '':
-        return jsonify({"message": "No selected file"}), 400
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        file_path = os.path.join(UPLOAD_FOLDER, filename)
-        file.save(file_path)
-        new_pdf = BillPDF(bill_id=bill_id, file_path=file_path)
-        db.session.add(new_pdf)
+    try:
+        new_bill = Bill(
+            user_id=user_id,
+            name=data['name'],
+            amount=float(data['amount']),
+            due_date=datetime.strptime(data['due_date'], '%Y-%m-%d'),
+            recurring=data.get('recurring', False),
+            frequency=data.get('frequency'),
+            category=data.get('category'),
+            account_id=data.get('account_id'),
+            is_credit_card=data.get('is_credit_card', False)
+        )
+        db.session.add(new_bill)
         db.session.commit()
-        return jsonify({"message": "PDF uploaded successfully"}), 200
-    return jsonify({"message": "File type not allowed"}), 400
+        return jsonify({"message": "Bill added successfully", "id": str(new_bill.id)}), 201
+    except Exception as e:
+        db.session.rollback()
+        print(e)
+        return jsonify({"message": f"Error adding bill: {str(e)}"}), 400
 
-@main.route('/bills/<int:bill_id>', methods=['GET', 'PUT', 'DELETE'])
+@main.route('/bills/<uuid:bill_id>/mark_paid', methods=['POST'])
 @login_required
-def bill_operations(bill_id):
+def mark_bill_paid(bill_id):
     bill = Bill.query.get_or_404(bill_id)
-    
     if bill.user_id != session['user_id']:
         return jsonify({"message": "Unauthorized"}), 403
-    
-    if request.method == 'GET':
-        return jsonify(bill.to_dict())
-    
-    elif request.method == 'PUT':
+
+    bill.mark_as_paid()
+    db.session.commit()
+    return jsonify({"message": "Bill marked as paid successfully"}), 200
+
+
+@main.route('/bills/<uuid:bill_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_bill(bill_id):
+    bill = Bill.query.get_or_404(bill_id)
+    if bill.user_id != session['user_id']:
+        return jsonify({"message": "Unauthorized"}), 403
+
+    if request.method == 'POST':
         data = request.json
-        bill.name = data.get('name', bill.name)
-        bill.amount = float(data.get('amount', bill.amount))
-        bill.due_date = datetime.strptime(data.get('due_date', bill.due_date.strftime('%Y-%m-%d')), '%Y-%m-%d')
-        bill.recurring = data.get('recurring', bill.recurring)
-        bill.frequency = data.get('frequency', bill.frequency)
-        bill.category = data.get('category', bill.category)
-        bill.account_id = data.get('account_id', bill.account_id)
-        bill.is_credit_card = data.get('is_credit_card', bill.is_credit_card)
-        db.session.commit()
-        return jsonify({"message": "Bill updated successfully"}), 200
-    
-    elif request.method == 'DELETE':
+        try:
+            bill.name = data['name']
+            bill.amount = float(data['amount'])
+            bill.due_date = datetime.strptime(data['due_date'], '%Y-%m-%d')
+            bill.recurring = data.get('recurring', False)
+            bill.frequency = data.get('frequency')
+            bill.category = data.get('category')
+            bill.is_credit_card = data.get('is_credit_card', False)
+
+            account_id = data.get('account_id')
+            if account_id:
+                bill.account_id = uuid.UUID(account_id)
+            else:
+                bill.account_id = None
+
+            db.session.commit()
+            return jsonify({"message": "Bill updated successfully"}), 200
+        except Exception as e:
+            print(e)
+            db.session.rollback()
+            return jsonify({"message": f"Error updating bill: {str(e)}"}), 400
+
+    # For GET requests, return the bill data
+    return jsonify(bill.to_dict()), 200
+
+@main.route('/bills/<uuid:bill_id>/delete', methods=['POST'])
+@login_required
+def delete_bill(bill_id):
+    bill = Bill.query.get_or_404(bill_id)
+    if bill.user_id != session['user_id']:
+        return jsonify({"message": "Unauthorized"}), 403
+
+    try:
         db.session.delete(bill)
         db.session.commit()
         return jsonify({"message": "Bill deleted successfully"}), 200
+    except Exception as e:
+        print(e)
+        db.session.rollback()
+        return jsonify({"message": f"Error deleting bill: {str(e)}"}), 400
 
 
-
-
+@main.route('/bills/<uuid:bill_id>/details')
+@login_required
+def bill_details(bill_id):
+    bill = Bill.query.get_or_404(bill_id)
+    if bill.user_id != session['user_id']:
+        return jsonify({"message": "Unauthorized"}), 403
+    
+    # Get all transactions linked to this bill
+    transactions = Transaction.query.filter_by(bill_id=bill_id).order_by(Transaction.date.desc()).all()
+    
+    return render_template('money/bill_details.html', bill=bill, transactions=transactions)
 
 
 
@@ -293,15 +345,8 @@ def debts():
         db.session.commit()
         return jsonify(new_debt.to_dict()), 201
 
-@main.route('/dashboard', methods=['GET'])
-@login_required
-def dashboard():
-    user_id = get_jwt_identity()
-    # Implement dashboard data aggregation here
-    # This could include total balance, recent transactions, budget status, etc.
-    return jsonify({"message": "Dashboard data"}), 200
 
-# Add more routes as needed for other features
+
 
 
 

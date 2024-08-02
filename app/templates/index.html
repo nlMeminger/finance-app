@@ -3,7 +3,20 @@
 {% block content %}
 
 <body>
+
+
+  <!-- React and ReactDOM -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.development.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.development.js"></script>
+  <!-- Babel -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.21.7/babel.min.js"></script>
+  <!-- React-Bootstrap -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-bootstrap/2.7.4/react-bootstrap.min.js"></script>
+
+  <script type="text/babel" src="{{ url_for('static', filename='assets/js/setupWizard.js') }}"></script>
+
   <main class="main" id="main">
+
     <div class="pagetitle">
       <h1>Dashboard</h1>
       <nav>
@@ -12,7 +25,11 @@
           <li class="breadcrumb-item active">Dashboard</li>
         </ol>
       </nav>
+      <div id="getStartedButton"></div>
     </div><!-- End Page Title -->
+    
+
+
     <section>
 
       <!-- Row 1 -->
@@ -109,10 +126,11 @@
                   </tr>
                 </thead>
                 <tbody>
-                  
+
                 </tbody>
               </table>
-            </div></div>
+            </div>
+          </div>
         </div>
       </div>
 
